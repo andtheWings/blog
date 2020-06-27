@@ -2,6 +2,7 @@ baseURL = "https://example.com"
 title = "Your title"
 theme = "hugo-theme-m10c"
 paginate = 5
+ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [params]
   author = "John Doe"
