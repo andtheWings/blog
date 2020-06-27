@@ -1,18 +1,19 @@
 baseURL = "https://example.com"
-title = "Your title"
+title = "Thoughts from Daniel P."
 theme = "hugo-theme-m10c"
 paginate = 5
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
 
 [params]
-  author = "John Doe"
-  description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc vehicula turpis sit amet elit pretium."
+  author = "Daniel P. Riggins"
+  description = "A 30-something pediatric resident in Indianapolis, IN"
+  avatar = "https://i.postimg.cc/449YxySF/me.jpg"
   [[params.social]]
     name = "github"
-    url = "https://github.com/gohugoio"
+    url = "https://github.com/andtheWings"
   [[params.social]]
     name = "twitter"
-    url = "https://twitter.com/gohugoio"
+    url = "https://twitter.com/danriggins"
 
   # Brown theme
   #[params.style]
