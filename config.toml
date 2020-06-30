@@ -1,5 +1,6 @@
 baseURL = "https://example.com"
 title = "Thoughts from Daniel P."
+author = "Daniel P. Riggins"
 theme = "hugo-theme-m10c"
 paginate = 5
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]

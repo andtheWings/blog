@@ -1,0 +1,10 @@
+---
+title: Let Me Introduce Myself
+author: "Daniel P. Riggins"
+date: '2020-06-29'
+slug: let-me-introduce-myself
+categories: []
+tags: [intro]
+---
+
+Hi, I'm Dan. I'm a pediatric resident with the IU School of Medicine in Indianapolis, which means I spend most of my time at the awesome [Riley Hospital for Children](https://www.instagram.com/rileychildrens/).
