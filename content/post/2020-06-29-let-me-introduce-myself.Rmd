@@ -1,5 +1,5 @@
 ---
-title: Let Me Introduce Myself
+title: Why another blog?
 author: "Daniel P. Riggins"
 date: '2020-06-29'
 slug: let-me-introduce-myself
