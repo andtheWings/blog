@@ -5,17 +5,35 @@
     <link>/tags/</link>
     <description>Recent content in Tags on Thoughts from Daniel P.</description>
     <generator>Hugo -- gohugo.io</generator>
-    <lastBuildDate>Tue, 30 Jun 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 03 Jul 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
+      <title>Indianapolis</title>
+      <link>/tags/indianapolis/</link>
+      <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/indianapolis/</guid>
+      <description></description>
+    </item>
+    
+    <item>
       <title>intro</title>
       <link>/tags/intro/</link>
-      <pubDate>Tue, 30 Jun 2020 00:00:00 +0000</pubDate>
+      <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>
       
       <guid>/tags/intro/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>prevention</title>
+      <link>/tags/prevention/</link>
+      <pubDate>Fri, 03 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/tags/prevention/</guid>
       <description></description>
     </item>
     
