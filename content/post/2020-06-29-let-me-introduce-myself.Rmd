@@ -1,16 +1,46 @@
 ---
-title: Prevention on my mind
-author: "Daniel P. Riggins"
+title: "Prevention on my mind"
+author: "Daniel P. Riggins, MD"
 date: "`r Sys.Date()`"
+tags:
+- intro
+- prevention
+- Indianapolis
 slug: prevention-on-my-mind
-categories: []
-tags: [intro]
 ---
 
-Hi, I'm Dan. I'm a pediatric resident at [Riley Hospital for Children](https://www.instagram.com/rileychildrens/). I spent my last month in our intensive care unit, which was a humbling experience in a few different ways. First in terms of how much medicine I still have to learn after 6+ years of education/training. Also in terms of the awesome power we healthcare providers have to sustain our patients' lives. But finally, how limited we are to alter the overall life course of most children.
+Hi, I'm Dan. I'm a pediatric resident at [Riley Hospital for Children](https://www.instagram.com/rileychildrens/). I spent the month of June in our intensive care unit, which was a humbling experience in a few different ways. First in terms of how much medicine I still needed to learn after 6+ years of education/training. Also in terms of witnessing the awesome power we healthcare providers have to sustain patients' lives. But finally, how limited we are to alter the overall life course of most children.
 
-Let's drill into this last point a little more. Even with a catchment area that covers almost all of Indiana and with tens of thousands of encounters a year, we only see a fraction of our state's population. Furthermore, we are really good at keeping sick children alive, but we are less equipped to keep them from getting sick/hurt in the first place. Just this month, I have seen a 1st grader who was struck almost dirctly by a vehicle that T-boned his family's car, a toddler that was shaken so hard by his frustrated parent he ultimately died of brain damage, and a newborn who's body was ravaged by a metabolic disorder that screening tests identified only hours after he presented to our unit. We can use machines to breathe for these children, filter their blood, and even bypass the beating of their heart for a time, but the damage is already done. 
+Let's drill into this last point a little more. Even with a catchment area that covers almost all of Indiana and with tens of thousands of encounters a year, we only see a fraction of our state's population. Furthermore, we are really good at keeping sick children alive, but we are less equipped to keep them from getting sick/hurt in the first place. Just this month, I have seen a 1st grader who was struck directly by a vehicle that T-boned his family's car, a toddler that was shaken so hard by his over-stressed parent he ultimately died of brain damage, and a newborn who's body was ravaged by a metabolic disorder to the point of cardiac arrest. We can use machines to breathe for these children, filter their blood, and even bypass the beating of their heart for a time, but the damage is already done. 
 
-In one form or another, all of these admissions to the PICU were preventable. But how do we know what interventions might have made the difference? Over the past year, I have thought about this question a lot through the lens of children like the first boy described above who was involved in a car crash. In collaboration with an epidemiologist at Riley, I've reviewed hundreds of cases of motor vehicle crashes involving pedestrians throughout the region. I've also used Indiana State Police data to [aggregate years of crashes together](https://nbviewer.jupyter.org/github/andtheWings/IndyCrash/blob/master/make_datasets.ipynb), [interactively map them](http://danielriggins.com/plotting_crashes.html), [and identify sub-sections of roads with the highest risk](http://danielriggins.com/KDEplus_Notebook).
+```{r echo=FALSE, fig.align = 'center', out.width = "75%", fig.cap = "No one wants to see their child in such a critical state."}
 
-Lately though, I've been craving ways to more directly engage with others in the city working on the same issues. I've been continually impressed by the folks involved in the non-profit [Health by Design](http://www.healthbydesignonline.org/about/) as well as numerous city agencies including [Public Works](https://www.indy.gov/activity/major-transportation-projects), [Metropolitan Development](https://www.indy.gov/agency/department-of-metropolitan-development), and [Sustainability](https://www.indy.gov/agency/office-of-sustainability).
+knitr::include_graphics("https://i.dailymail.co.uk/i/pix/2011/09/10/article-0-0DCE864F00000578-378_634x396.jpg")
+
+```
+
+In one form or another, all of these admissions to the PICU were preventable. But how do we know what interventions might have made the difference? Over the past two years, I have thought about this question a lot through the lens of children involved in motor vehicles crashes. Road injuries are the leading cause of death for Hoosier Children at 18%. I have been obsessed with lowering this proportion since first seeing it on a graph demonstrating "burden of disease" in Indiana:
+
+```{r echo=FALSE, fig.align = 'center', fig.cap = "See the top right green box. 18% is just way too high. I can't accept that road injuries are not preventable."}
+
+knitr::include_graphics("https://i.postimg.cc/wvP6C56q/leading-cause-death.png")
+
+```
+
+In collaboration with an epidemiologist at Riley, I've reviewed hundreds of cases of motor vehicle crashes involving pedestrians throughout the region. I've also used Indiana State Police data to [aggregate years of crashes together](https://nbviewer.jupyter.org/github/andtheWings/IndyCrash/blob/master/make_datasets.ipynb), [interactively map them](http://danielriggins.com/plotting_crashes.html), [and identify sub-sections of roads with the highest risk](http://danielriggins.com/KDEplus_Notebook).
+
+Lately though, I've been craving ways to more directly engage with others in the city working on the same issues. I've been continually impressed by the folks involved in the non-profit [Health by Design](http://www.healthbydesignonline.org/about/) as well as numerous city agencies including [Public Works](https://www.indy.gov/activity/major-transportation-projects), [Metropolitan Development](https://www.indy.gov/agency/department-of-metropolitan-development), [Public Health](http://marionhealth.org/) and [Sustainability](https://www.indy.gov/agency/office-of-sustainability). It seems that in the past few years, city government has been worked hard to integrate all of these public-private efforts into a "Comprehensive Plan".
+
+```{r echo=FALSE, fig.align = 'center', out.width = "75%", fig.cap = "Now every city plan features a stamp that explains its part in the larger comprehensive plan."}
+
+knitr::include_graphics("https://i.postimg.cc/t459qGXm/comprehensive-stamp.png")
+
+```
+
+Perhaps one of the best examples implementing a unified vision is the ["Indy Moves"](https://citybase-cms-prod.s3.amazonaws.com/56f6ad08f77141ae88fd3dc6ca182cbf.pdf) document published in 2018. In my next post, I will explore why I love its content so much and how it can be used as a blueprint to better engage with the city--not just for myself--but for all interested citizens. Our combined efforts will protect Indy/Hoosier children better than anything I could do on my own. I want the devestating after-effects of road trauma to be an exceedingly rare sighting for future generations of pediatric residents when they rotate in the ICU.
+
+```{r echo=FALSE, fig.align = 'center', out.width = "25%"}
+
+knitr::include_graphics("https://indy.civicomment.org/sites/indy.civicomment.org/files/doc_images/im.PNG")
+
+```
