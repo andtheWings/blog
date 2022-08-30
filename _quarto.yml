@@ -1,0 +1,22 @@
+project:
+  type: website
+
+website:
+  title: "Daniel P. Hall Riggins Blog"
+  navbar:
+    pinned: true
+    left: 
+      - href: http://danielriggins.com
+        text: "Back to Landing Page"
+    right:
+      - icon: github
+        href: https://github.com/andtheWings
+      - icon: twitter
+        href: https://twitter.com/DanRiggins
+format:
+  html:
+    theme: litera
+    css: styles.css
+
+
+
