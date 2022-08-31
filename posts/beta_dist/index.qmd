@@ -1,0 +1,341 @@
+---
+title: "Estimating Risk for Rare Events in Small Areas where the Denominator is Unknown"
+author: "Daniel P. Hall Riggins, MD"
+date: "2022-08-31"
+categories: [suid, infant-safety, pediatrics]
+---
+
+*This blog post is an adaptation of methods taught by David Robinson in his book [Introduction to Empirical Bayes: Examples from Baseball Statistics](https://drob.gumroad.com/l/empirical-bayes).*
+
+My research group has compiled a dataset that counts the number of cases of Sudden Unexpected Infant Death (SUID) in each census tract of Cook County, IL from 2015-2019. We want an accurate way to estimate the risk of SUID in each tract using this data. SUID is defined as any case of death in a baby less than age 1 year old that does not have a known cause before a medical autopsy is performed. While the state of Illinois releases statistics about SUID for the county as a whole, we think it's important to understand this phenomenon at a more granular geographic level. That way, we have a better understanding of geographic disparities and service agencies can more precisely target their interventions. 
+
+The goal of this post is to convince you that Bayesian techniques offer a more principled way to estimate a risk process when the amount of observed data has limitations by itself.
+
+## Intro to the Data
+
+Here's what our dataset looks like:
+
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(leaflet)
+
+suid_base_table <- 
+    read_csv(here::here("data", "suid_snapshot_2022_08_31.csv")) |>
+    # Remove rows with NA values for count of SUID cases or for population under five
+    filter(!is.na(suid_count) & !is.na(pop_under_five)) |> 
+    select(fips, suid_count, pop_under_five)
+
+suid_base_table
+```
+
+Each row is an individual census tract. The fips column lists each tract's unique identifier, suid_count is the number of SUID cases that took place from 2015-2019, and pop_under_five is the population of children under age five as estimated by the U.S. Census' American Community Survey.
+
+It's important to note that SUID is a rare event. The vast majority of census tracts did not suffer any cases of SUID during this time period. Here's a histogram to illustrate:
+
+```{r}
+#| echo: false
+ggplot(suid_base_table, aes(x = suid_count)) +
+    geom_bar() +
+    scale_x_continuous(breaks = 0:6) +
+    labs(
+        title = "Distribution of SUID Case Counts in Census Tracts",
+        x = "Count of SUID Cases",
+        y = "Frequency"
+    )
+```
+
+The first challenge in estimating the risk is we don't have the proper denominator. SUID incidence is typically reported as cases per 100,000 **live births**. However, we don't have disaggregated counts of live births in each census tract. The best approximation I have found is pop_under_five, which I hope reasonably mirrors the number of live births over a five-year period. Here are approximated incidences for each tract using pop_under_five as denominator:
+
+```{r}
+suid_incidence_table <-
+    suid_base_table |> 
+    mutate(suid_incidence = round(suid_count / pop_under_five * 1E5, 2))
+
+suid_incidence_table
+```
+
+Let's calculate the mean of these values:
+
+```{r}
+mean(suid_incidence_table$suid_incidence)
+```
+Hmm, it's seems like there are some "Not a number" values messing up the calculation. Let's filter them out:
+
+```{r}
+mean(suid_incidence_table$suid_incidence, na.rm = TRUE)
+```
+That's also not what we were looking for. What's going on?
+
+A problem that emerges from using pop_under_five as the denominator is that five tracts are estimated to have **zero** children under the age of five. In such cases, R calculates the incidence as NaN (not a number) when suid_count is zero and as Inf (infinity) when suid_count is anything greater than zero:
+
+```{r}
+suid_incidence_table |> 
+    filter(pop_under_five == 0)
+```
+
+We know that the true risk for these tracts can't be a non-existent number or infinitely large, so we'll do our best adjust for these circumstances:
+
+```{r}
+suid_incidence_table <-
+    suid_incidence_table |> 
+    mutate(
+        suid_incidence = 
+            case_when(
+                # If incidence is NaN, change to 0
+                is.nan(suid_incidence) ~ 0,
+                # If it's Inf, change to 100,000
+                is.infinite(suid_incidence) ~ 1E5,
+                # Otherwise, keep as is
+                TRUE ~ suid_incidence
+            )
+    )
+```
+
+Now let's try and calculate the mean:
+
+```{r}
+mean(suid_incidence_table$suid_incidence)
+```
+A much more sensible number, although it still seems like an overestimate compared to the overall incidence for Cook County, which is 88.3 cases per 100,000 births per [Illinois Department of Health](https://dph.illinois.gov/topics-services/life-stages-populations/infant-mortality/sids/sleep-related-death-statistics.html). 
+
+Let's take a look at the census tracts with lowest and highest incidences:
+
+```{r}
+suid_incidence_table |> 
+    arrange(suid_incidence) |> 
+    head(10)
+```
+
+```{r}
+suid_incidence_table |> 
+    arrange(desc(suid_incidence)) |> 
+    head(10)
+```
+
+On both extremes, the incidence values seem intuitively implausible when used to characterize the underlying risk for SUID. On one end, we shouldn't expect that a tract's risk for SUID was zero just because there were no observed cases. SUID is rare, so it's expected that many tracts will count zero cases just by luck of the draw. 
+
+On the other end, notice how the tracts with highest incidence of SUID also tend to have low populations under five. Let's take an aside for a minute and think about flipping a coin and using the results to estimate whether that coin is weighted to favor a certain side. If you flip a coin three times and get heads every single time, do you think it's actually weighted to favor heads? What about if you flip it 500 times and still get heads every single time? You should be a lot more confident after 500 coin flips that the coin is truly weighted because you've accumulated more evidence. Similarly, think of every live birth as a coin flip that accumulates evidence about the underlying risk of SUID. The more live births there are, the more confident we can be that the observed incidence matches the true risk for SUID. Said another way, census tracts with high incidence but low counts of pop_under_five might just be very unlucky, rather than truly at higher risk.
+
+Given these limitations of approximating incidence, we are going to use a Bayesian approach to adjust estimations to incorporate our "prior" expectations of what the underlying risk process should look like.
+
+## Step 1: Set your prior expectations
+
+We are going to use the "Beta distribution" to represent our prior expectations. The Beta distribution is not nearly as well known as others like the normal distribution (aka Bell Curve), but the Beta is particularly well suited to represent a plausible values for a risk process. Check out David Robinson's [post here](http://varianceexplained.org/statistics/beta_distribution_and_baseball/) for more explanation. The Beta distribution has two "parameters". The number of observed events is represented by $\alpha$ (SUID cases) and the number of trials that don't result in an event is represented by $\beta$ (live births that don't result in SUID, aka survivals). Let's try using Cook County's overall incidence of SUID and count of live births to set our prior expectations:
+
+```{r}
+# Sourced from Illinois Vital Statistics
+# https://dph.illinois.gov/topics-services/life-stages-populations/infant-mortality/sids/sleep-related-death-statistics.html
+overall_incidence <- 88.3 / 1E5 # per live birth for Cook County in 2014
+overall_incidence
+```
+
+```{r}
+# https://dph.illinois.gov/data-statistics/vital-statistics/birth-statistics.html
+total_live_births <- 139398 # for Cook County from 2015-2019
+extrapolated_cases <- overall_incidence * total_live_births
+extrapolated_cases
+```
+```{r}
+extrapolated_survivals <- total_live_births - extrapolated_cases
+extrapolated_survivals
+```
+A cool thing about the Beta distribution is it will adjust it's shape to reflect the number of observations (aka evidence) we give it. I'll try and illustrate by rescaling the parameters to reflect the relative number of live births (coin flips of evidence) in the county versus in a typical census tract.
+
+```{r}
+scaling_factor <- median(suid_incidence_table$pop_under_five) / total_live_births
+scaling_factor
+```
+
+Let's simulate two Beta distributions of 1,284 census tracts. One will use parameters reflecting the amount of evidence accumulated for a whole county's worth of live births, versus just a census tract's worth of live births.
+
+```{r}
+#| echo: false
+prior_suid_risk_sim <- 
+    tibble(
+        "Cases: 123, Survivals: 139275" = 
+            rbeta(
+                n = 1284,
+                shape1 = extrapolated_cases,
+                shape2 = extrapolated_survivals
+            ) * 1E5,
+        "Cases: 0.189, Survivals: 213" = 
+            rbeta(
+                n = 1284,
+                shape1 = extrapolated_cases * scaling_factor,
+                shape2 = extrapolated_survivals * scaling_factor
+            ) * 1E5
+    ) |> 
+    # Reshape the data for use in plotting
+    tidyr::pivot_longer(
+        cols = c("Cases: 123, Survivals: 139275", "Cases: 0.189, Survivals: 213"),
+        names_to = "scale_of_evidence",
+        values_to = "sim_suid_risk"
+    )
+
+ggplot(prior_suid_risk_sim, aes(x = sim_suid_risk, color = scale_of_evidence)) + 
+    geom_density() +
+    coord_cartesian(
+       xlim = c(0, 500) 
+    ) +
+    geom_vline(
+        xintercept = 88.3,
+        color = "black",
+        linetype = "dashed"
+    ) +
+    annotate(
+       "text",
+       x = 150,
+       y = 0.05,
+       label = "Both Means: ~88.3"
+    ) +
+    theme(
+       legend.position = "bottom" 
+    ) +
+    labs(
+        title = "Distribution of SUID Risk Simulated \n from Prior Expectations for 1284 Census Tracts",
+        x = "Simulated SUID Risk (cases per 100,000 live births)",
+        y = "Density",
+        color = "Distribution Parameters:",
+        linetype = "Distribution Parameters:"
+    )
+```
+
+Both distributions have the same ratio of cases ($\alpha$) to survivals ($\beta$), so their mean expected SUID Risk is about the same at 88.3 cases per 100,000 live births, but the blue distribution observed a county's worth of live birth evidence (139,398), so its range of expected values is much more compact (about 70 to 120) than a census tract's worth of live birth evidence (estimating risk anywhere from 0 to 500).
+
+In Bayesian analysis, we combine our prior expectations with observed data to get a "posterior" estimate. In this case, I want the prior expectation to weigh about the same as the observed data, so I'll use census-tract-scaled parameters in my prior.
+
+## Step 2: Combine the prior expectation and observed data
+
+To get each posterior estimate of risk from the Beta distribution, we are going to perform the following calculation:
+
+$$ \frac{cases_{prior} + cases_{observed}}{cases_{prior} + cases_{observed} + survivals_{prior} + survivals_{observed}} = \frac{0.189 + cases_{observed}}{0.189 + cases_{observed} + 213.311 + survivals_{observed}} $$
+
+
+```{r}
+prior_alpha <- extrapolated_cases * scaling_factor
+prior_beta <- extrapolated_survivals * scaling_factor
+suid_posterior_table <-
+    suid_incidence_table |> 
+    mutate(
+        posterior_alpha = prior_alpha + suid_count,
+        posterior_beta = prior_beta + pop_under_five - suid_count
+    ) |> 
+    mutate(
+        posterior_risk = posterior_alpha / (posterior_alpha + posterior_beta) * 1E5,
+        # Use the Beta Distribution Quantile function to also get 95% credible intervals
+        posterior_risk_low = qbeta(0.025, posterior_alpha, posterior_beta) * 1E5,
+        posterior_risk_high = qbeta(0.975, posterior_alpha, posterior_beta) * 1E5,
+        .before = posterior_alpha
+    )
+
+suid_posterior_table
+```
+
+Let's visualize how our posterior estimates of risk relate to incidence calculations and prior expectations:
+
+```{r}
+#| echo: false
+#| warning: false
+
+bind_rows(
+    slice_min(suid_posterior_table, posterior_risk, n = 3),
+    slice_max(suid_posterior_table, posterior_risk, n = 3),
+    slice_sample(filter(suid_posterior_table, suid_incidence > 0), n = 3)
+) |> 
+    mutate(
+        ylabel = 
+            paste0(
+                as.character(suid_count), " / ", as.character(pop_under_five)    
+            )
+    ) |>
+    mutate(
+        ylabel = 
+            reorder(
+                factor(ylabel, ordered = TRUE),
+                posterior_risk,
+                decreasing = TRUE
+            )
+    ) |> 
+    ggplot(aes(x = posterior_risk, y = ylabel)) +
+    geom_point() +
+    geom_errorbarh(aes(xmin = posterior_risk_low, xmax = posterior_risk_high)) +
+    geom_point(aes(x = suid_incidence, y = ylabel), shape = 1) +
+    geom_vline(xintercept = 88.3, linetype = "dashed") +
+    scale_x_continuous(trans = "log10", breaks = c(1, 10, 100, 1000, 10000, 1E5)) +
+    labs(
+        title = "Comparing Approx. Incidence to Estimated Posterior Risk \n of SUID in Cook County, IL from 2015-2019",
+        x = "Posterior Risk Estimate (cases per 100,000 live births) on a Log Scale",
+        y = "Approx. Incidence (cases per 100,000 live births)",
+    )
+    
+```
+
+On the Y axis, we have 9 census tracts for which we've estimated risk. We label each tract with the observed data used to calculate approximate incidence. For example, the top row shows a census tract that observed zero cases of SUID and had a population under five of 1,011 children. Each approximate incidence is marked on the x axis as a hollow circle for reference. Each filled black circle marks our posterior estimate of SUID risk and is flanked by a 95% credible interval (the Bayesian cousin to the confidence interval). The dashed vertical line marks our prior expectation of risk as observed for the whole county. 
+
+What I want you to notice is how the posterior estimate represents a tug-of-war between the prior expectation (dashed line) and the observed data (hollow circle). The prior expectation is able to pull our estimates away from extreme observed incidence values (like 0 in the top three rows, or over 5000 in the bottom three rows) to more plausible values. This balance between the forces of expectation and observation is what makes Bayesian estimation so powerful!
+
+## Geographic Pattern?
+
+When we map census tracts with the 100 highest and 100 lowest estimates of SUID risk, we notice a pattern starting to emerge. The lowest estimates are concentrating on the West/South sides of Chicago and the Southern suburbs. These areas are where historic trends of segregation have caused concentration of socioeconomic vulnerability. When you think about it, we might expect these areas to have higher risk of SUID even before we observe the data. In a future blog post, I'll show how we can use auxiliary information about tracts (like location or SES) to fine tune our prior expectations of risk for a better posterior estimate.
+
+```{r include=FALSE}
+
+min_max <-
+    bind_rows(
+        mutate(
+            slice_max(suid_posterior_table, posterior_risk, n = 100),
+            type = "Highest"
+        ),
+        mutate(
+            slice_min(suid_posterior_table, posterior_risk, n = 100),
+            type = "Lowest"
+        )
+    ) |> 
+    mutate(fips = as.character(fips)) |> 
+    left_join(tigris::tracts(state = 17, county = 031), by = c("fips" = "GEOID")) |> 
+    sf::st_as_sf() |> 
+    sf::st_transform(crs = 4326)
+```
+
+
+```{r}
+#| echo: false
+pal <- colorFactor(palette = "viridis", domain = min_max$type)
+
+leaflet(min_max) |>
+    # Use CartoDB's background tiles
+    addProviderTiles("CartoDB.Positron") |>
+    # Center and zoom the map to Cook County
+    setView(lat = 41.816544, lng = -87.749500, zoom = 9) |>
+    # Add button to enable fullscreen map
+    leaflet.extras::addFullscreenControl() |>
+    addPolygons(
+        color = "gray",
+        weight = 0.25,
+        opacity = 1,
+        # Color according to palette above
+        fillColor = ~ pal(type),
+        fillOpacity = 0.5,
+        label = "Click me for more details!",
+        # Click on the polygon to get its ID
+        popup = 
+            ~ paste0(
+                "<b>FIPS ID</b>: ", fips, "</br>",
+                "<b>SUID Count</b>: ", suid_count, " deaths</br>",
+                "<b>Population Under 5 Years Old</b>: ", pop_under_five, " children</br>",
+                "<b>Approx. Incidence</b>: ", round(suid_incidence, 0), " cases per 100,000 live births</br>",
+                "<b>Risk Estimate</b>: ", round(posterior_risk, 0), " cases per 100,000 live births"
+            )
+    ) |> 
+    #Add legend
+    leaflet::addLegend(
+        title = paste0("The 100 Highest and Lowest <br> Estimates of SUID Risk <br> in Cook County, IL <br> from 2015-2019"),
+        values = ~ type,
+        pal = pal,
+        position = "topright"
+    ) 
+```
