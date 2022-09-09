@@ -10,9 +10,11 @@ In my [last post](https://danielriggins.com/blog/posts/beta_dist/), I showed how
 
 My objective for this post is to outline enough of the Bayesian approach to explain why it is better suited to the use-case of estimating SUID risk in small areas, then to give a set of examples to build intuition around how the method is working under the hood.
 
+For a more in-depth introduction to Bayesian statistics, check out the textbook "Bayes Rules! An Introduction to Applied Bayesian Modeling", which is [available online for free](https://www.bayesrulesbook.com/). I adapted the source code from it's companion package {[bayesrules](https://github.com/bayes-rules/bayesrules)} to develop the visualizations in this post.
+
 ## The Challenge
 
-Epidemiology works with seemingly idiosyncratic denominators when representing incidence or risk. For example, the overall incidence of SUID in Cook County, IL for 2014 was 88.3 cases *per 100,000 live-births*. While it would be just as mathematically valid to represent it as 0.000883 cases per single live-birth, that doesn't make sense in human terms. When considering a rare event, you want to use a large pool of people as your reference denominator.
+Epidemiology works with seemingly idiosyncratic denominators when representing incidence or risk. For example, the overall incidence of SUID in Cook County, IL for 2014 was 88.3 cases *per 100,000 live births*. While it would be just as mathematically valid to represent it as 0.000883 cases per single live birth, that doesn't make sense in human terms. When considering a rare event, you want to use a large pool of people as your reference denominator.
 
 Let's assume the incidence of 88.3 accurately represents the underlying risk of SUID in the county for 2014. If we know that there were 140,000 live births in the next five years, then we would expect there to be about 124 cases of SUID.
 
@@ -24,7 +26,7 @@ But let's zoom in to a single census tract where there were 240 live births over
 
 ## Why Use Bayesian Methods to Solve this Challenge?
 
-The "Frequentist" approach to statistics uses data in isolation from "prior knowledge". If we observe 0 cases out of 240 live births in a census tract, our estimate of the underlying risk is 0 cases per 100,000 live births--even if our knowledge about the county as a whole suggests the underlying risk is closer to 88.3. Furthermore, if we want to make inferences about our data, Frequentist methods require a certain threshold sample size (for example n = 30) to be accurate. If the pool of live-births in a census tract is something small like 13 total, than we expect up front that our estimate is going to be out of whack. 
+The "Frequentist" approach to statistics uses data in isolation from "prior knowledge". If we observe 0 cases out of 240 live births in a census tract, our estimate of the underlying risk is 0 cases per 100,000 live births--even if our knowledge about the county as a whole suggests the underlying risk is closer to 88.3. Furthermore, if we want to make inferences about our data, Frequentist methods require a certain threshold sample size (for example n = 30) to be accurate. If the pool of live births in a census tract is something small like 13 total, than we expect up front that our estimate is going to be out of whack. 
 
 In contrast, Bayesian methods weigh the observed data against prior knowledge. If we have a lot of observed data, the final estimate will rely mostly on that data and look similar to the Frequentist estimate. But if we don't observe a lot of data, the prior knowledge weighs more heavily into the estimate and will diverge away from the Frequentist estimate.
 
@@ -62,7 +64,7 @@ ggplot(tibble(x = c(0, 1)), aes(x)) +
     ) +
     labs(
         
-        x = "SUID Risk (cases per 100,000 live-births)",
+        x = "SUID Risk (cases per 100,000 live births)",
         y = "Density"
     ) +
     scale_y_sqrt() +
@@ -71,7 +73,7 @@ ggplot(tibble(x = c(0, 1)), aes(x)) +
     theme_light()
 ```
 
-The shaded red area represents the full range of plausible SUID risk values represented by our prior knowledge. The mean of this curve is 88.3, but we're using the whole distribution to say the true risk could vary anywhere from 0 to 2500. Next, we can overlay a range of plausible values based on hypothetical data where we observed 1 case of SUID in 270 live births:
+The shaded red area represents the full range of plausible SUID risk values represented by our prior knowledge. The point where the curve is highest corresponds to the most plausible value (0) and we can average over the whole curve to get an expected risk of 88.3. These are useful point estimates but we hold onto the whole distribution to say the true risk could vary anywhere from 0 to 2500. Next, we can overlay a range of plausible values based on hypothetical data where we observed 1 case of SUID in 270 live births:
 
 ```{r}
 y <- 1
@@ -116,7 +118,7 @@ ggplot(tibble(x = c(0, 1)), aes(x)) +
     ) +
     labs(
         title = paste0("Cases = ", as.character(y), ", Live Births = ", as.character(n)),
-        x = "SUID Risk (cases per 100,000 live-births)",
+        x = "SUID Risk (cases per 100,000 live births)",
         y = "Density"
     ) +
     scale_y_sqrt() +
@@ -156,7 +158,7 @@ plot_beta_binom_variation <- function(shape1_num, shape2_num, y_num, n_num) {
     ) +
     labs(
         title = paste0("Cases = ", as.character(y_num), ", Live Births = ", as.character(n_num), ",\n Average Posterior Estimate = ", as.character(round((shape1_num + y_num) / (shape1_num + shape2_num + n_num - y_num) * 1E5)), " cases per 100,000 live births"),
-        x = "SUID Risk (cases per 100,000 live-births)",
+        x = "SUID Risk (cases per 100,000 live births)",
         y = "Density"
     ) +
     scale_y_sqrt() +
@@ -181,9 +183,9 @@ plot_beta_binom_variation <- function(shape1_num, shape2_num, y_num, n_num) {
 plot_beta_binom_variation(0.189, 213, 1, 270)
 ```
 
-I've taken out the shaded regions for visual clarity, but the area under each curve is still representing the most plausible values. Look how the purple "posterior" curve distributes itself in between the red and blue ones. Bayesian statistics weighed our prior expectations against the data and estimated the true risk to be somewhere in between.
+I've taken out the shaded regions for visual clarity, but the area under each curve is still representing the most plausible values. Look how the purple posterior curve distributes itself in between the red and blue ones. Bayesian statistics weighed our prior expectations against the data and estimated the true risk to be somewhere in between.
 
-To get some better intuition about what's happening, let's look at some extreme scenarios. First, what if we observe zero cases in a census tract with very few live births?
+To get some better intuition about what's happening, let's look at some extreme scenarios. First, what if we observed zero cases in a census tract with very few live births?
 
 ```{r}
 plot_beta_binom_variation(0.189, 213, 0, 10)
@@ -195,7 +197,7 @@ In this example, the data gave us very little information so the prior expectati
 plot_beta_binom_variation(0.189, 213, 0, 1000)
 ```
 
-This example considers a census tract where we still observed zero cases, but there were many live births, meaning there were more opportunities for a case of SUID to happen. Given there were so many observed live births, the data weighs much more heavily into the posterior, which estimates the true risk (16) to be lower than our prior expectations (88.3).
+This example considers a census tract where we still observed zero cases, but there were many live births, meaning there were more opportunities for a case of SUID to happen. Given there were so many observed live births, the data weighed much more heavily into the posterior, which estimated the true risk (16) to be lower than our prior expectations (88.3).
 
 ```{r}
 plot_beta_binom_variation(0.189, 213, 5, 1000)
@@ -211,4 +213,4 @@ And finally, in this example, we still observed 5 cases, but we decreased the nu
 
 ## Wrap-Up
 
-Some people argue that Bayesian statistics introduce too much subjectivity by letting us incorporate "arbitrary" prior expectations. Bayesians counter that statistical analysis always involved subjective interpretation. When we look at risk estimates based on the data alone, we adjust our trust in those numbers based on external knowledge. Bayesian methods simply give us a way to more formally define and weigh those expectations into our estimates. In the case of SUID estimation for small populations in small geographic areas, it's really helpful to moderate extreme estimates created by limited data using the Bayesian prior.
+Some people argue that Bayesian statistics introduce too much subjectivity by letting us incorporate "arbitrary" prior expectations. Bayesians counter that statistical analysis always involves subjective interpretation. When we look at risk estimates based on the data alone, we adjust our trust in those numbers based on external knowledge. Bayesian methods simply give us a way to more formally define and weigh those expectations into our estimates. In the case of SUID risk for small populations in small geographic areas, it's really helpful to moderate extreme estimates created by limited data using the Bayesian prior.

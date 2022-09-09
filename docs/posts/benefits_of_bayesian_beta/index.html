@@ -216,9 +216,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <p>In my <a href="https://danielriggins.com/blog/posts/beta_dist/">last post</a>, I showed how to estimate risk of sudden unexpected infant death (SUID) in census tracts using Bayesian methods. The Bayesian approach is a separate branch of statistics from the Frequentist approach that most of us learned in school. Historically, Frequentist methods were so dominantly favored, many people may not have been aware that the statistics they were learning were termed “Frequentist” and that there was an alternative “Bayesian” approach available.</p>
 <p>My objective for this post is to outline enough of the Bayesian approach to explain why it is better suited to the use-case of estimating SUID risk in small areas, then to give a set of examples to build intuition around how the method is working under the hood.</p>
+<p>For a more in-depth introduction to Bayesian statistics, check out the textbook “Bayes Rules! An Introduction to Applied Bayesian Modeling”, which is <a href="https://www.bayesrulesbook.com/">available online for free</a>. I adapted the source code from it’s companion package {<a href="https://github.com/bayes-rules/bayesrules">bayesrules</a>} to develop the visualizations in this post.</p>
 <section id="the-challenge" class="level2">
 <h2 class="anchored" data-anchor-id="the-challenge">The Challenge</h2>
-<p>Epidemiology works with seemingly idiosyncratic denominators when representing incidence or risk. For example, the overall incidence of SUID in Cook County, IL for 2014 was 88.3 cases <em>per 100,000 live-births</em>. While it would be just as mathematically valid to represent it as 0.000883 cases per single live-birth, that doesn’t make sense in human terms. When considering a rare event, you want to use a large pool of people as your reference denominator.</p>
+<p>Epidemiology works with seemingly idiosyncratic denominators when representing incidence or risk. For example, the overall incidence of SUID in Cook County, IL for 2014 was 88.3 cases <em>per 100,000 live births</em>. While it would be just as mathematically valid to represent it as 0.000883 cases per single live birth, that doesn’t make sense in human terms. When considering a rare event, you want to use a large pool of people as your reference denominator.</p>
 <p>Let’s assume the incidence of 88.3 accurately represents the underlying risk of SUID in the county for 2014. If we know that there were 140,000 live births in the next five years, then we would expect there to be about 124 cases of SUID.</p>
 <p><span class="math display">\[Expected \space New \space Cases \space in \space the \space County = Incidence \times Live \space Births =\]</span></p>
 <p><span class="math display">\[\frac{88.3 \space cases}{100,000 \space live \space births} \times 140,000 \space live \space births \approx 124 \space cases \]</span></p>
@@ -226,7 +227,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="why-use-bayesian-methods-to-solve-this-challenge" class="level2">
 <h2 class="anchored" data-anchor-id="why-use-bayesian-methods-to-solve-this-challenge">Why Use Bayesian Methods to Solve this Challenge?</h2>
-<p>The “Frequentist” approach to statistics uses data in isolation from “prior knowledge”. If we observe 0 cases out of 240 live births in a census tract, our estimate of the underlying risk is 0 cases per 100,000 live births–even if our knowledge about the county as a whole suggests the underlying risk is closer to 88.3. Furthermore, if we want to make inferences about our data, Frequentist methods require a certain threshold sample size (for example n = 30) to be accurate. If the pool of live-births in a census tract is something small like 13 total, than we expect up front that our estimate is going to be out of whack.</p>
+<p>The “Frequentist” approach to statistics uses data in isolation from “prior knowledge”. If we observe 0 cases out of 240 live births in a census tract, our estimate of the underlying risk is 0 cases per 100,000 live births–even if our knowledge about the county as a whole suggests the underlying risk is closer to 88.3. Furthermore, if we want to make inferences about our data, Frequentist methods require a certain threshold sample size (for example n = 30) to be accurate. If the pool of live births in a census tract is something small like 13 total, than we expect up front that our estimate is going to be out of whack.</p>
 <p>In contrast, Bayesian methods weigh the observed data against prior knowledge. If we have a lot of observed data, the final estimate will rely mostly on that data and look similar to the Frequentist estimate. But if we don’t observe a lot of data, the prior knowledge weighs more heavily into the estimate and will diverge away from the Frequentist estimate.</p>
 </section>
 <section id="examples" class="level2">
@@ -261,7 +262,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live-births)"</span>,</span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live births)"</span>,</span>
 <span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Density"</span></span>
 <span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_sqrt</span>() <span class="sc">+</span></span>
@@ -273,7 +274,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><img src="index_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>The shaded red area represents the full range of plausible SUID risk values represented by our prior knowledge. The mean of this curve is 88.3, but we’re using the whole distribution to say the true risk could vary anywhere from 0 to 2500. Next, we can overlay a range of plausible values based on hypothetical data where we observed 1 case of SUID in 270 live births:</p>
+<p>The shaded red area represents the full range of plausible SUID risk values represented by our prior knowledge. The point where the curve is highest corresponds to the most plausible value (0) and we can average over the whole curve to get an expected risk of 88.3. These are useful point estimates but we hold onto the whole distribution to say the true risk could vary anywhere from 0 to 2500. Next, we can overlay a range of plausible values based on hypothetical data where we observed 1 case of SUID in 270 live births:</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -319,7 +320,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"Cases = "</span>, <span class="fu">as.character</span>(y), <span class="st">", Live Births = "</span>, <span class="fu">as.character</span>(n)),</span>
-<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live-births)"</span>,</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live births)"</span>,</span>
 <span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Density"</span></span>
 <span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_sqrt</span>() <span class="sc">+</span></span>
@@ -363,7 +364,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
 <span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"Cases = "</span>, <span class="fu">as.character</span>(y_num), <span class="st">", Live Births = "</span>, <span class="fu">as.character</span>(n_num), <span class="st">",</span><span class="sc">\n</span><span class="st"> Average Posterior Estimate = "</span>, <span class="fu">as.character</span>(<span class="fu">round</span>((shape1_num <span class="sc">+</span> y_num) <span class="sc">/</span> (shape1_num <span class="sc">+</span> shape2_num <span class="sc">+</span> n_num <span class="sc">-</span> y_num) <span class="sc">*</span> <span class="fl">1E5</span>)), <span class="st">" cases per 100,000 live births"</span>),</span>
-<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live-births)"</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="st">"SUID Risk (cases per 100,000 live births)"</span>,</span>
 <span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="st">"Density"</span></span>
 <span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
 <span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    <span class="fu">scale_y_sqrt</span>() <span class="sc">+</span></span>
@@ -391,8 +392,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>I’ve taken out the shaded regions for visual clarity, but the area under each curve is still representing the most plausible values. Look how the purple “posterior” curve distributes itself in between the red and blue ones. Bayesian statistics weighed our prior expectations against the data and estimated the true risk to be somewhere in between.</p>
-<p>To get some better intuition about what’s happening, let’s look at some extreme scenarios. First, what if we observe zero cases in a census tract with very few live births?</p>
+<p>I’ve taken out the shaded regions for visual clarity, but the area under each curve is still representing the most plausible values. Look how the purple posterior curve distributes itself in between the red and blue ones. Bayesian statistics weighed our prior expectations against the data and estimated the true risk to be somewhere in between.</p>
+<p>To get some better intuition about what’s happening, let’s look at some extreme scenarios. First, what if we observed zero cases in a census tract with very few live births?</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -412,7 +413,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
-<p>This example considers a census tract where we still observed zero cases, but there were many live births, meaning there were more opportunities for a case of SUID to happen. Given there were so many observed live births, the data weighs much more heavily into the posterior, which estimates the true risk (16) to be lower than our prior expectations (88.3).</p>
+<p>This example considers a census tract where we still observed zero cases, but there were many live births, meaning there were more opportunities for a case of SUID to happen. Given there were so many observed live births, the data weighed much more heavily into the posterior, which estimated the true risk (16) to be lower than our prior expectations (88.3).</p>
 <div class="cell">
 <details>
 <summary>Code</summary>
@@ -436,7 +437,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="wrap-up" class="level2">
 <h2 class="anchored" data-anchor-id="wrap-up">Wrap-Up</h2>
-<p>Some people argue that Bayesian statistics introduce too much subjectivity by letting us incorporate “arbitrary” prior expectations. Bayesians counter that statistical analysis always involved subjective interpretation. When we look at risk estimates based on the data alone, we adjust our trust in those numbers based on external knowledge. Bayesian methods simply give us a way to more formally define and weigh those expectations into our estimates. In the case of SUID estimation for small populations in small geographic areas, it’s really helpful to moderate extreme estimates created by limited data using the Bayesian prior.</p>
+<p>Some people argue that Bayesian statistics introduce too much subjectivity by letting us incorporate “arbitrary” prior expectations. Bayesians counter that statistical analysis always involves subjective interpretation. When we look at risk estimates based on the data alone, we adjust our trust in those numbers based on external knowledge. Bayesian methods simply give us a way to more formally define and weigh those expectations into our estimates. In the case of SUID risk for small populations in small geographic areas, it’s really helpful to moderate extreme estimates created by limited data using the Bayesian prior.</p>
 
 
 </section>
