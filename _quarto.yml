@@ -3,12 +3,12 @@ project:
   output-dir: docs
 
 website:
-  title: "Daniel P. Hall Riggins Blog"
+  title: "Hall Riggins Blog"
   navbar:
     pinned: true
     left: 
       - href: http://danielriggins.com
-        text: "Back to Landing Page"
+        text: "Back to Personal Landing Page"
     right:
       - icon: github
         href: https://github.com/andtheWings
