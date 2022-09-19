@@ -64,9 +64,9 @@ ul.task-list{list-style: none;}
     }
 
     const options = {
-      valueNames: ['listing-date','listing-title','listing-author','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
       
-      searchColumns: ["listing-date","listing-title","listing-author","listing-description","listing-categories"],
+      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
     };
 
     window['quarto-listings'] = window['quarto-listings'] || {};
@@ -130,7 +130,7 @@ ul.task-list{list-style: none;}
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="epidemiology">epidemiology <span class="quarto-category-count">(1)</span></div><div class="category" data-category="infant-safety">infant-safety <span class="quarto-category-count">(2)</span></div><div class="category" data-category="pediatrics">pediatrics <span class="quarto-category-count">(2)</span></div><div class="category" data-category="statistics">statistics <span class="quarto-category-count">(1)</span></div><div class="category" data-category="suid">suid <span class="quarto-category-count">(2)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="epidemiology">epidemiology <span class="quarto-category-count">(2)</span></div><div class="category" data-category="infant-safety">infant-safety <span class="quarto-category-count">(3)</span></div><div class="category" data-category="pediatrics">pediatrics <span class="quarto-category-count">(3)</span></div><div class="category" data-category="statistics">statistics <span class="quarto-category-count">(2)</span></div><div class="category" data-category="suid">suid <span class="quarto-category-count">(3)</span></div></div></div>
 <!-- main -->
 <main class="content quarto-banner-title-block column-page-left" id="quarto-document-content">
 
@@ -142,7 +142,61 @@ ul.task-list{list-style: none;}
 
 <div class="quarto-listing quarto-listing-container-default" id="listing-listing">
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="suid,infant-safety,pediatrics,epidemiology,statistics" data-listing-date-sort="1662613200000" data-listing-file-modified-sort="1662732882116" data-listing-reading-time-sort="11.2">
+<div class="quarto-post image-right" data-index="0" data-categories="suid,infant-safety,pediatrics,epidemiology,statistics" data-listing-date-sort="1663560000000" data-listing-file-modified-sort="1663613231825" data-listing-reading-time-sort="10.09">
+<div class="thumbnail">
+<p><a href="./posts/model_live_births_from_pop_count/index.html"> <img src="./posts/model_live_births_from_pop_count/mcmc_baby.jpg" class="thumnail-image"> </a></p>
+</div>
+<div class="body">
+<a href="./posts/model_live_births_from_pop_count/index.html">
+<h3 class="no-anchor listing-title">
+Modeling Live Births from Population Counts: A First-Time MCMC Model
+</h3>
+<div class="listing-subtitle">
+
+</div>
+</a>
+<div class="listing-categories">
+<div class="listing-category" onclick="window.quartoListingCategory('suid'); return false;">
+suid
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('infant-safety'); return false;">
+infant-safety
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('pediatrics'); return false;">
+pediatrics
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('epidemiology'); return false;">
+epidemiology
+</div>
+<div class="listing-category" onclick="window.quartoListingCategory('statistics'); return false;">
+statistics
+</div>
+</div>
+<a href="./posts/model_live_births_from_pop_count/index.html">
+<div class="listing-description">
+In my previous post, I estimated risk of sudden unexpected infant death in census tracts while acknowledging that I was using <strong>the wrong denominator</strong>. I should have been using the count of live births in each census tract, but I have not been able to find counts of live births at such a fine geographic scale. The data we do have available from the U.S. Census is the count of children under five years old (5yo) per census tract, so I was using that as a proxy for the count of live births over a five year period. In the future, I want to be more accurately approximate the true denominator.
+</div>
+</a>
+</div>
+<div class="metadata">
+<a href="./posts/model_live_births_from_pop_count/index.html">
+<div class="listing-date">
+Sep 19, 2022
+</div>
+<div class="listing-author">
+Daniel P. Hall Riggins, MD
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-categories="suid,infant-safety,pediatrics,epidemiology,statistics" data-listing-date-sort="1662609600000" data-listing-file-modified-sort="1662829265623" data-listing-reading-time-sort="11.2">
+<div class="thumbnail">
+<a href="./posts/benefits_of_bayesian_beta/index.html">
+<div class="thumbnail-image">
+
+</div>
+</a><p><a href="./posts/benefits_of_bayesian_beta/index.html"></a></p>
+</div>
 <div class="body">
 <a href="./posts/benefits_of_bayesian_beta/index.html">
 <h3 class="no-anchor listing-title">
@@ -186,7 +240,14 @@ Daniel P. Hall Riggins, MD
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="suid,infant-safety,pediatrics" data-listing-date-sort="1661922000000" data-listing-file-modified-sort="1661959805481" data-listing-reading-time-sort="16.32">
+<div class="quarto-post image-right" data-index="2" data-categories="suid,infant-safety,pediatrics" data-listing-date-sort="1661918400000" data-listing-file-modified-sort="1661959805481" data-listing-reading-time-sort="16.32">
+<div class="thumbnail">
+<a href="./posts/beta_dist/index.html">
+<div class="thumbnail-image">
+
+</div>
+</a><p><a href="./posts/beta_dist/index.html"></a></p>
+</div>
 <div class="body">
 <a href="./posts/beta_dist/index.html">
 <h3 class="no-anchor listing-title">
