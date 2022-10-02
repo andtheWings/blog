@@ -272,3 +272,4 @@ bind_rows(
 ```
 
 The negative binomial model generalizes better and creates more sensible predictions in a new range of predictor values. In future work, I'll use these estimated counts of live births to estimate the underlying risk process for sudden unexpected infant death. Thanks for reading!
+

@@ -1,0 +1,292 @@
+---
+title: "Characterizing Age of Victims of Gun-Related Deaths in Cook County, IL, 2017-2021"
+author: "Daniel P. Hall Riggins, MD"
+date: "2022-10-02"
+categories: [guns, epidemiology]
+code-fold: true
+---
+
+## Set-Up
+
+Data was sourced from the [Cook County Medical Examiner's Office](https://maps.cookcountyil.gov/medexammaps/) and modified according to the data pipeline in [this commit](https://github.com/andtheWings/cook_county_medical_examiner/commit/ff382b3c225de239c799a47f57ca6f5db5d32c42) of my Github repository.
+
+```{r}
+#| label: set-up
+#| output: false
+library(tidyverse)
+library(lubridate)
+library(ggdist)
+
+theme_set(theme_light())
+
+# Parquet file generated from the ccme_archive_generic target in data pipeline linked above
+ccme <- arrow::read_parquet(here::here("data", "ccme_archive_generic_2022_10_02.parquet"))
+
+gsw_deaths <-
+    ccme |> 
+    filter(gun_related == TRUE) |> 
+    filter(death_date > ymd("2014-12-31") & death_date < ymd("2022-01-01")) |> 
+    mutate(
+        manner = factor(manner, levels = c(NA, "SUICIDE", "HOMICIDE", "ACCIDENT"), ordered = TRUE),
+        race = factor(race, levels = c("Other", "White", "Black", "Asian", "Am. Indian", NA), ordered = TRUE)
+    )
+```
+
+![Image Source: https://www.chicagotribune.com/news/ct-viz-cta-red-line-station-shooting-20200229-uaofbvsknbfv3g4xlqph4kdudi-photogallery.html](ambulance.jpg)
+
+## Age Unstratified
+
+::: {.panel-tabset}
+
+### Density 
+
+```{r}
+#| warning: false
+#| cache: true
+gsw_deaths |> 
+    ggplot(aes(x = age)) +
+    stat_dotsinterval() +
+    labs(
+        x = "Age",
+        y = "Density",
+        caption = "Point is 50%ile; Thick interval contains inner 66% of data; Thin interval contains inner 95%"
+    )
+```
+
+### Deciles 
+
+```{r}
+quantile(gsw_deaths$age, probs = seq(0, 1, 0.1), na.rm = TRUE)
+```
+:::
+
+## Age Stratified by Manner of Death
+
+::: {.panel-tabset}
+
+### Density 
+
+```{r}
+#| warning: false
+#| cache: true
+gsw_deaths |> 
+    ggplot(aes(x = age, y = manner)) +
+    stat_dotsinterval() +
+    labs(
+        x = "Age", y = "",
+        caption = "Point is 50%ile; Thick interval contains inner 66% of data; Thin interval contains inner 95%"
+    )
+
+```
+
+```{r}
+#| include: false
+gsw_deaths |> 
+    group_by(manner) |> 
+    summarise(n = n())
+```
+
+### Deciles
+
+```{r}
+gsw_deaths |> 
+    group_by(manner) |> 
+    summarise(
+        "0th Percentile" = round(quantile(age, probs = 0, na.rm = TRUE)),
+        "10th Percentile" = round(quantile(age, probs = 0.1, na.rm = TRUE)),
+        "20th Percentile" = round(quantile(age, probs = 0.2, na.rm = TRUE)),
+        "30th Percentile" = round(quantile(age, probs = 0.3, na.rm = TRUE)),
+        "40th Percentile" = round(quantile(age, probs = 0.4, na.rm = TRUE)),
+        "50th Percentile" = round(quantile(age, probs = 0.5, na.rm = TRUE)),
+        "60th Percentile" = round(quantile(age, probs = 0.6, na.rm = TRUE)),
+        "70th Percentile" = round(quantile(age, probs = 0.7, na.rm = TRUE)),
+        "80th Percentile" = round(quantile(age, probs = 0.8, na.rm = TRUE)),
+        "90th Percentile" = round(quantile(age, probs = 0.9, na.rm = TRUE)),
+        "100th Percentile" = round(quantile(age, probs = 1, na.rm = TRUE)),
+    ) |> 
+    pivot_longer(cols = 2:12, names_to = " ", values_to = "value") |> 
+    pivot_wider(names_from = manner, values_from = value) |> 
+    select(
+        " ",
+        "NA, n=39" = "NA",
+        "Accident, n=10" = ACCIDENT,
+        "Homicide, n=5156" = HOMICIDE,
+        "Suicide, n=1064" = SUICIDE,
+    ) |> 
+    knitr::kable()
+```
+
+:::
+
+## Age Stratified by Gender
+
+::: {.panel-tabset}
+
+### Density
+
+```{r}
+#| warning: false
+#| cache: true
+gsw_deaths |> 
+    ggplot(aes(x = age, y = gender)) +
+    stat_dotsinterval() +
+    labs(
+        x = "Age", y = "",
+        caption = "Point is 50%ile; Thick interval contains inner 66% of data; Thin interval contains inner 95%"
+    )
+
+```
+
+### Deciles
+
+```{r}
+#| include: false
+gsw_deaths |> 
+    group_by(gender) |> 
+    summarise(n = n())
+```
+
+```{r}
+gsw_deaths |> 
+    group_by(gender) |> 
+    summarise(
+        "0th Percentile" = round(quantile(age, probs = 0, na.rm = TRUE)),
+        "10th Percentile" = round(quantile(age, probs = 0.1, na.rm = TRUE)),
+        "20th Percentile" = round(quantile(age, probs = 0.2, na.rm = TRUE)),
+        "30th Percentile" = round(quantile(age, probs = 0.3, na.rm = TRUE)),
+        "40th Percentile" = round(quantile(age, probs = 0.4, na.rm = TRUE)),
+        "50th Percentile" = round(quantile(age, probs = 0.5, na.rm = TRUE)),
+        "60th Percentile" = round(quantile(age, probs = 0.6, na.rm = TRUE)),
+        "70th Percentile" = round(quantile(age, probs = 0.7, na.rm = TRUE)),
+        "80th Percentile" = round(quantile(age, probs = 0.8, na.rm = TRUE)),
+        "90th Percentile" = round(quantile(age, probs = 0.9, na.rm = TRUE)),
+        "100th Percentile" = round(quantile(age, probs = 1, na.rm = TRUE)),
+    ) |> 
+    pivot_longer(cols = 2:12, names_to = " ", values_to = "value") |> 
+    pivot_wider(names_from = gender, values_from = value) |> 
+    select(
+        " ",
+        "Female, n=557" = "Female",
+        "Male, n=5712" = "Male",
+    ) |> 
+    knitr::kable()
+```
+
+:::
+
+## Age Stratified by Race
+
+::: {.panel-tabset}
+
+### Density
+
+```{r}
+#| warning: false
+#| cache: true
+gsw_deaths |> 
+    ggplot(aes(x = age, y = race)) +
+    stat_dotsinterval() +
+    labs(
+        x = "Age", y = "",
+        caption = "Point is 50%ile; Thick interval contains inner 66% of data; Thin interval contains inner 95%"
+    )
+
+```
+
+```{r}
+#| include: false
+gsw_deaths |> 
+    group_by(race) |> 
+    summarise(n = n())
+```
+
+### Deciles
+
+```{r}
+gsw_deaths |> 
+    group_by(race) |> 
+    summarise(
+        "0th Percentile" = round(quantile(age, probs = 0, na.rm = TRUE)),
+        "10th Percentile" = round(quantile(age, probs = 0.1, na.rm = TRUE)),
+        "20th Percentile" = round(quantile(age, probs = 0.2, na.rm = TRUE)),
+        "30th Percentile" = round(quantile(age, probs = 0.3, na.rm = TRUE)),
+        "40th Percentile" = round(quantile(age, probs = 0.4, na.rm = TRUE)),
+        "50th Percentile" = round(quantile(age, probs = 0.5, na.rm = TRUE)),
+        "60th Percentile" = round(quantile(age, probs = 0.6, na.rm = TRUE)),
+        "70th Percentile" = round(quantile(age, probs = 0.7, na.rm = TRUE)),
+        "80th Percentile" = round(quantile(age, probs = 0.8, na.rm = TRUE)),
+        "90th Percentile" = round(quantile(age, probs = 0.9, na.rm = TRUE)),
+        "100th Percentile" = round(quantile(age, probs = 1, na.rm = TRUE)),
+    ) |> 
+    pivot_longer(cols = 2:12, names_to = " ", values_to = "value") |> 
+    pivot_wider(names_from = race, values_from = value) |> 
+    select(
+        " ",
+        "NA, n=7" = "NA",
+        "Am. Indian, n=4" = "Am. Indian",
+        "Asian, n=33" = Asian,
+        "Black, n=4438" = Black,
+        "White, n=1742" = White,
+        "Other, n=45" = Other
+    ) |> 
+    knitr::kable()
+```
+
+:::
+
+## Age Stratified by Latino Ethnicity
+
+::: {.panel-tabset}
+
+### Density
+
+```{r}
+#| warning: false
+#| cache: true
+gsw_deaths |> 
+    ggplot(aes(x = age, y = latino)) +
+    stat_dotsinterval() +
+    labs(
+        x = "Age", y = "",
+        caption = "Point is 50%ile; Thick interval contains inner 66% of data; Thin interval contains inner 95%"
+    )
+
+```
+
+### Deciles
+
+```{r}
+#| include: false
+gsw_deaths |> 
+    group_by(latino) |> 
+    summarise(n = n())
+```
+
+```{r}
+gsw_deaths |> 
+    group_by(latino) |> 
+    summarise(
+        "0th Percentile" = round(quantile(age, probs = 0, na.rm = TRUE)),
+        "10th Percentile" = round(quantile(age, probs = 0.1, na.rm = TRUE)),
+        "20th Percentile" = round(quantile(age, probs = 0.2, na.rm = TRUE)),
+        "30th Percentile" = round(quantile(age, probs = 0.3, na.rm = TRUE)),
+        "40th Percentile" = round(quantile(age, probs = 0.4, na.rm = TRUE)),
+        "50th Percentile" = round(quantile(age, probs = 0.5, na.rm = TRUE)),
+        "60th Percentile" = round(quantile(age, probs = 0.6, na.rm = TRUE)),
+        "70th Percentile" = round(quantile(age, probs = 0.7, na.rm = TRUE)),
+        "80th Percentile" = round(quantile(age, probs = 0.8, na.rm = TRUE)),
+        "90th Percentile" = round(quantile(age, probs = 0.9, na.rm = TRUE)),
+        "100th Percentile" = round(quantile(age, probs = 1, na.rm = TRUE)),
+    ) |> 
+    pivot_longer(cols = 2:12, names_to = " ", values_to = "value") |> 
+    pivot_wider(names_from = latino, values_from = value) |> 
+    select(
+        " ",
+        "True, n=897" = "TRUE",
+        "False, n=5372" = "FALSE",
+    ) |> 
+    knitr::kable()
+```
+
+:::
+
