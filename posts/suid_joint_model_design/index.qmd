@@ -1,0 +1,91 @@
+---
+title: "Designing a Joint Model of SUID Risk and Live Birth Counts"
+author: "Daniel P. Hall Riggins, MD"
+date: "2022-10-13"
+categories: [suid, infant-safety, pediatrics, epidemiology, statistics]
+code-fold: true
+---
+
+## Intro
+
+The purpose of this post is to solicit help with building a more useful Bayesian model of SUID Risk.
+
+![](help.png)
+
+The ultimate parameter of interest is the risk of sudden infant death syndrome (SUID) in each census tract of Cook County, IL from 2015-2019. I have counts of SUID cases that took place in each tract during that time period. I want to use those counts to estimate the underlying generative risk process that produced them. 
+
+One could naively represent the risk as raw incidence. In this blog post, I outlined why that's a bad idea because it produces implausibly low and high point estimates. This is in part because SUID is (blessedly) rare and the population of each census tract is relatively small. For example, the overall incidence of SUID in Cook County as a whole was about 88.3 cases per 100,000 births, but incidence calculations in individual census tracts were as small as 0 cases per 100,000 births and as high as 13,000 cases per 100,000 births.
+
+Bayesian estimation of the generative risk process brings two primary benefits:
+
+- It allows me to incorporate prior knowledge to smooth out estimates toward more plausible values
+- It allows me to represent risk as a distribution of plausible values rather than just getting a point estimate
+
+
+
+## Basic Premise
+
+I want to represent the risk in the following Beta-Binomial model:
+
+$$Y|\pi \sim Binomial(n, \pi)$$
+
+$$\pi \sim Beta(\alpha, \beta)$$
+
+
+Where:
+
+- $Y|\pi$ is the count of SUID cases modeled by a Binomial distribution with parameters $n$ and $\pi$
+- $n$ is the count of births
+- $\pi$ is the risk of SUID modeled by a Beta distribution with hyperparameters $\alpha$ and $\beta$
+
+## Preliminary Solution
+
+As a starting pointing, I decided to use global priors derived from incidence of SUID in Cook County as a whole in 2014:
+
+$$\mu_0 = \sigma_0 = 88.3 \times 10^{-5}$$
+
+Where:
+
+- $\mu_0$ is the prior mean SUID risk
+- $\sigma_0$ is the prior standard deviation of SUID risk
+
+These were reparameterized to:
+
+$$\alpha_0 = \frac{\mu_0}{\sigma_0} = 1$$
+
+$$\beta_0 = \frac{1-\mu_0}{\sigma_0} \approx 1132$$
+
+From these priors, I estimated a posterior point estimate for each tract as:
+
+$$E(\pi_i | Y = y_i) = \frac{\alpha_0 + y_i}{\alpha_0 + \beta_0 + n_i}$$
+
+Where $E(\pi_i | Y = y_i)$ is read as the posterior mean risk of SUID in an indexed census tract given $y_i$ SUID cases were observed out of $n_i$ births.
+
+See my [previous blog post](https://danielriggins.com/blog/posts/beta_dist/) for an implementation of this preliminary model.
+
+## Limitations and Proposed Improvements:
+
+### 1. Number of births was fudged
+
+We don't actually have data on the number of births that took place in each census tract. The U.S. Census only produces estimates of birth counts to a level of granularity at the county level. Instead, I used the Census' data on the number of young children (less than age 5) in each census tract as a proxy for the number of births.
+
+In [this blog post](https://danielriggins.com/blog/posts/model_live_births_from_pop_count/), I outlined a generalized linear regression model of birth counts from population counts of young children at the **county level** using the Negative Binomial distribution. I want to incorporate this work into a joint model that estimates birth counts and SUID risk concurrently at the **census tract level**.
+
+### 2. Our prior knowledge doesn't actually expect risk to be the same in each tract
+
+Based on extraneous socioeconomic factors, our prior knowledge expects some tracts to have greater risk of SUID than others.
+
+I want to create individual priors indexed to each census tract.
+
+### 3. The model ignores spatial influence
+
+The current model considers risk as an independent process in each census tract. A more plausible model would modulate the estimate of risk in each tract to be more similar to estimates of risk in nearby tracts.
+
+I want to add such a component of spatial autocorrelation to the estimates.
+
+## Help Wanted
+
+I know that adding all these moving parts will require me to transition from using a mathematically-specified posterior solution, to using an MCMC approximation. I am hoping someone can help me write out all these components into a cohesive whole that can be fed into brms (or directly into Stan). I aim to get this work published and would at minimum add you into the acknowledgements section if not consider adding you as a co-author depending on the level of assistance given.
+
+Thank you for the consideration!
+

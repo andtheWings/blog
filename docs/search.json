@@ -140,11 +140,46 @@
     "text": "Geographic Pattern?\nWhen we map census tracts with the 100 highest and 100 lowest estimates of SUID risk, we notice a pattern starting to emerge. The lowest estimates are concentrating on the West/South sides of Chicago and the Southern suburbs. These areas are where historic trends of segregation have caused concentration of socioeconomic vulnerability. When you think about it, we might expect these areas to have higher risk of SUID even before we observe the data. In a future blog post, I’ll show how we can use auxiliary information about tracts (like location or SES) to fine tune our prior expectations of risk for a better posterior estimate."
   },
   {
+    "objectID": "posts/suid_joint_model_design/index.html",
+    "href": "posts/suid_joint_model_design/index.html",
+    "title": "Designing a Joint Model of SUID Risk and Live Birth Counts",
+    "section": "",
+    "text": "The purpose of this post is to solicit help with building a more useful Bayesian model of SUID Risk.\n\nThe ultimate parameter of interest is the risk of sudden infant death syndrome (SUID) in each census tract of Cook County, IL from 2015-2019. I have counts of SUID cases that took place in each tract during that time period. I want to use those counts to estimate the underlying generative risk process that produced them.\nOne could naively represent the risk as raw incidence. In this blog post, I outlined why that’s a bad idea because it produces implausibly low and high point estimates. This is in part because SUID is (blessedly) rare and the population of each census tract is relatively small. For example, the overall incidence of SUID in Cook County as a whole was about 88.3 cases per 100,000 births, but incidence calculations in individual census tracts were as small as 0 cases per 100,000 births and as high as 13,000 cases per 100,000 births.\nBayesian estimation of the generative risk process brings two primary benefits:\n\nIt allows me to incorporate prior knowledge to smooth out estimates toward more plausible values\nIt allows me to represent risk as a distribution of plausible values rather than just getting a point estimate"
+  },
+  {
+    "objectID": "posts/suid_joint_model_design/index.html#basic-premise",
+    "href": "posts/suid_joint_model_design/index.html#basic-premise",
+    "title": "Designing a Joint Model of SUID Risk and Live Birth Counts",
+    "section": "Basic Premise",
+    "text": "Basic Premise\nI want to represent the risk in the following Beta-Binomial model:\n\\[Y|\\pi \\sim Binomial(n, \\pi)\\]\n\\[\\pi \\sim Beta(\\alpha, \\beta)\\]\nWhere:\n\n\\(Y|\\pi\\) is the count of SUID cases modeled by a Binomial distribution with parameters \\(n\\) and \\(\\pi\\)\n\\(n\\) is the count of births\n\\(\\pi\\) is the risk of SUID modeled by a Beta distribution with hyperparameters \\(\\alpha\\) and \\(\\beta\\)"
+  },
+  {
+    "objectID": "posts/suid_joint_model_design/index.html#preliminary-solution",
+    "href": "posts/suid_joint_model_design/index.html#preliminary-solution",
+    "title": "Designing a Joint Model of SUID Risk and Live Birth Counts",
+    "section": "Preliminary Solution",
+    "text": "Preliminary Solution\nAs a starting pointing, I decided to use global priors derived from incidence of SUID in Cook County as a whole in 2014:\n\\[\\mu_0 = \\sigma_0 = 88.3 \\times 10^{-5}\\]\nWhere:\n\n\\(\\mu_0\\) is the prior mean SUID risk\n\\(\\sigma_0\\) is the prior standard deviation of SUID risk\n\nThese were reparameterized to:\n\\[\\alpha_0 = \\frac{\\mu_0}{\\sigma_0} = 1\\]\n\\[\\beta_0 = \\frac{1-\\mu_0}{\\sigma_0} \\approx 1132\\]\nFrom these priors, I estimated a posterior point estimate for each tract as:\n\\[E(\\pi_i | Y = y_i) = \\frac{\\alpha_0 + y_i}{\\alpha_0 + \\beta_0 + n_i}\\]\nWhere \\(E(\\pi_i | Y = y_i)\\) is read as the posterior mean risk of SUID in an indexed census tract given \\(y_i\\) SUID cases were observed out of \\(n_i\\) births.\nSee my previous blog post for an implementation of this preliminary model."
+  },
+  {
+    "objectID": "posts/suid_joint_model_design/index.html#limitations-and-proposed-improvements",
+    "href": "posts/suid_joint_model_design/index.html#limitations-and-proposed-improvements",
+    "title": "Designing a Joint Model of SUID Risk and Live Birth Counts",
+    "section": "Limitations and Proposed Improvements:",
+    "text": "Limitations and Proposed Improvements:\n\n1. Number of births was fudged\nWe don’t actually have data on the number of births that took place in each census tract. The U.S. Census only produces estimates of birth counts to a level of granularity at the county level. Instead, I used the Census’ data on the number of young children (less than age 5) in each census tract as a proxy for the number of births.\nIn this blog post, I outlined a generalized linear regression model of birth counts from population counts of young children at the county level using the Negative Binomial distribution. I want to incorporate this work into a joint model that estimates birth counts and SUID risk concurrently at the census tract level.\n\n\n2. Our prior knowledge doesn’t actually expect risk to be the same in each tract\nBased on extraneous socioeconomic factors, our prior knowledge expects some tracts to have greater risk of SUID than others.\nI want to create individual priors indexed to each census tract.\n\n\n3. The model ignores spatial influence\nThe current model considers risk as an independent process in each census tract. A more plausible model would modulate the estimate of risk in each tract to be more similar to estimates of risk in nearby tracts.\nI want to add such a component of spatial autocorrelation to the estimates."
+  },
+  {
+    "objectID": "posts/suid_joint_model_design/index.html#help-wanted",
+    "href": "posts/suid_joint_model_design/index.html#help-wanted",
+    "title": "Designing a Joint Model of SUID Risk and Live Birth Counts",
+    "section": "Help Wanted",
+    "text": "Help Wanted\nI know that adding all these moving parts will require me to transition from using a mathematically-specified posterior solution, to using an MCMC approximation. I am hoping someone can help me write out all these components into a cohesive whole that can be fed into brms (or directly into Stan). I aim to get this work published and would at minimum add you into the acknowledgements section if not consider adding you as a co-author depending on the level of assistance given.\nThank you for the consideration!"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Hall Riggins Blog",
     "section": "",
-    "text": "guns\n\n\nepidemiology\n\n\n\n\n\n\n\n\n\n\n\nOct 2, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\nepidemiology\n\n\nstatistics\n\n\n\n\n\n\n\n\n\n\n\nSep 19, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\nepidemiology\n\n\nstatistics\n\n\n\n\n\n\n\n\n\n\n\nSep 8, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\n\n\n\n\n\n\n\n\n\nAug 31, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\nNo matching items"
+    "text": "suid\n\n\ninfant-safety\n\n\npediatrics\n\n\nepidemiology\n\n\nstatistics\n\n\n\n\n\n\n\n\n\n\n\nOct 13, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nguns\n\n\nepidemiology\n\n\n\n\n\n\n\n\n\n\n\nOct 2, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n  \n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\nepidemiology\n\n\nstatistics\n\n\n\n\n\n\n\n\n\n\n\nSep 19, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\nepidemiology\n\n\nstatistics\n\n\n\n\n\n\n\n\n\n\n\nSep 8, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nsuid\n\n\ninfant-safety\n\n\npediatrics\n\n\n\n\n\n\n\n\n\n\n\nAug 31, 2022\n\n\nDaniel P. Hall Riggins, MD\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "LICENSE.html",

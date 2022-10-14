@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.649">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Daniel P. Hall Riggins, MD">
+<meta name="dcterms.date" content="2022-10-13">
+
+<title>Hall Riggins Blog - Designing a Joint Model of SUID Risk and Live Birth Counts</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<script src="../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Hall Riggins Blog</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="http://danielriggins.com">Back to Personal Landing Page</a>
+  </li>  
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/andtheWings"><i class="bi bi-github" role="img">
+</i> 
+ </a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/DanRiggins"><i class="bi bi-twitter" role="img">
+</i> 
+ </a>
+  </li>  
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <h1 class="title">Designing a Joint Model of SUID Risk and Live Birth Counts</h1>
+                                <div class="quarto-categories">
+                <div class="quarto-category">suid</div>
+                <div class="quarto-category">infant-safety</div>
+                <div class="quarto-category">pediatrics</div>
+                <div class="quarto-category">epidemiology</div>
+                <div class="quarto-category">statistics</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      <div>
+      <div class="quarto-title-meta-heading">Author</div>
+      <div class="quarto-title-meta-contents">
+               <p>Daniel P. Hall Riggins, MD </p>
+            </div>
+    </div>
+      
+      <div>
+      <div class="quarto-title-meta-heading">Published</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">October 13, 2022</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#intro" id="toc-intro" class="nav-link active" data-scroll-target="#intro">Intro</a></li>
+  <li><a href="#basic-premise" id="toc-basic-premise" class="nav-link" data-scroll-target="#basic-premise">Basic Premise</a></li>
+  <li><a href="#preliminary-solution" id="toc-preliminary-solution" class="nav-link" data-scroll-target="#preliminary-solution">Preliminary Solution</a></li>
+  <li><a href="#limitations-and-proposed-improvements" id="toc-limitations-and-proposed-improvements" class="nav-link" data-scroll-target="#limitations-and-proposed-improvements">Limitations and Proposed Improvements:</a>
+  <ul class="collapse">
+  <li><a href="#number-of-births-was-fudged" id="toc-number-of-births-was-fudged" class="nav-link" data-scroll-target="#number-of-births-was-fudged">1. Number of births was fudged</a></li>
+  <li><a href="#our-prior-knowledge-doesnt-actually-expect-risk-to-be-the-same-in-each-tract" id="toc-our-prior-knowledge-doesnt-actually-expect-risk-to-be-the-same-in-each-tract" class="nav-link" data-scroll-target="#our-prior-knowledge-doesnt-actually-expect-risk-to-be-the-same-in-each-tract">2. Our prior knowledge doesn’t actually expect risk to be the same in each tract</a></li>
+  <li><a href="#the-model-ignores-spatial-influence" id="toc-the-model-ignores-spatial-influence" class="nav-link" data-scroll-target="#the-model-ignores-spatial-influence">3. The model ignores spatial influence</a></li>
+  </ul></li>
+  <li><a href="#help-wanted" id="toc-help-wanted" class="nav-link" data-scroll-target="#help-wanted">Help Wanted</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+<section id="intro" class="level2">
+<h2 class="anchored" data-anchor-id="intro">Intro</h2>
+<p>The purpose of this post is to solicit help with building a more useful Bayesian model of SUID Risk.</p>
+<p><img src="help.png" class="img-fluid"></p>
+<p>The ultimate parameter of interest is the risk of sudden infant death syndrome (SUID) in each census tract of Cook County, IL from 2015-2019. I have counts of SUID cases that took place in each tract during that time period. I want to use those counts to estimate the underlying generative risk process that produced them.</p>
+<p>One could naively represent the risk as raw incidence. In this blog post, I outlined why that’s a bad idea because it produces implausibly low and high point estimates. This is in part because SUID is (blessedly) rare and the population of each census tract is relatively small. For example, the overall incidence of SUID in Cook County as a whole was about 88.3 cases per 100,000 births, but incidence calculations in individual census tracts were as small as 0 cases per 100,000 births and as high as 13,000 cases per 100,000 births.</p>
+<p>Bayesian estimation of the generative risk process brings two primary benefits:</p>
+<ul>
+<li>It allows me to incorporate prior knowledge to smooth out estimates toward more plausible values</li>
+<li>It allows me to represent risk as a distribution of plausible values rather than just getting a point estimate</li>
+</ul>
+</section>
+<section id="basic-premise" class="level2">
+<h2 class="anchored" data-anchor-id="basic-premise">Basic Premise</h2>
+<p>I want to represent the risk in the following Beta-Binomial model:</p>
+<p><span class="math display">\[Y|\pi \sim Binomial(n, \pi)\]</span></p>
+<p><span class="math display">\[\pi \sim Beta(\alpha, \beta)\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(Y|\pi\)</span> is the count of SUID cases modeled by a Binomial distribution with parameters <span class="math inline">\(n\)</span> and <span class="math inline">\(\pi\)</span></li>
+<li><span class="math inline">\(n\)</span> is the count of births</li>
+<li><span class="math inline">\(\pi\)</span> is the risk of SUID modeled by a Beta distribution with hyperparameters <span class="math inline">\(\alpha\)</span> and <span class="math inline">\(\beta\)</span></li>
+</ul>
+</section>
+<section id="preliminary-solution" class="level2">
+<h2 class="anchored" data-anchor-id="preliminary-solution">Preliminary Solution</h2>
+<p>As a starting pointing, I decided to use global priors derived from incidence of SUID in Cook County as a whole in 2014:</p>
+<p><span class="math display">\[\mu_0 = \sigma_0 = 88.3 \times 10^{-5}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(\mu_0\)</span> is the prior mean SUID risk</li>
+<li><span class="math inline">\(\sigma_0\)</span> is the prior standard deviation of SUID risk</li>
+</ul>
+<p>These were reparameterized to:</p>
+<p><span class="math display">\[\alpha_0 = \frac{\mu_0}{\sigma_0} = 1\]</span></p>
+<p><span class="math display">\[\beta_0 = \frac{1-\mu_0}{\sigma_0} \approx 1132\]</span></p>
+<p>From these priors, I estimated a posterior point estimate for each tract as:</p>
+<p><span class="math display">\[E(\pi_i | Y = y_i) = \frac{\alpha_0 + y_i}{\alpha_0 + \beta_0 + n_i}\]</span></p>
+<p>Where <span class="math inline">\(E(\pi_i | Y = y_i)\)</span> is read as the posterior mean risk of SUID in an indexed census tract given <span class="math inline">\(y_i\)</span> SUID cases were observed out of <span class="math inline">\(n_i\)</span> births.</p>
+<p>See my <a href="https://danielriggins.com/blog/posts/beta_dist/">previous blog post</a> for an implementation of this preliminary model.</p>
+</section>
+<section id="limitations-and-proposed-improvements" class="level2">
+<h2 class="anchored" data-anchor-id="limitations-and-proposed-improvements">Limitations and Proposed Improvements:</h2>
+<section id="number-of-births-was-fudged" class="level3">
+<h3 class="anchored" data-anchor-id="number-of-births-was-fudged">1. Number of births was fudged</h3>
+<p>We don’t actually have data on the number of births that took place in each census tract. The U.S. Census only produces estimates of birth counts to a level of granularity at the county level. Instead, I used the Census’ data on the number of young children (less than age 5) in each census tract as a proxy for the number of births.</p>
+<p>In <a href="https://danielriggins.com/blog/posts/model_live_births_from_pop_count/">this blog post</a>, I outlined a generalized linear regression model of birth counts from population counts of young children at the <strong>county level</strong> using the Negative Binomial distribution. I want to incorporate this work into a joint model that estimates birth counts and SUID risk concurrently at the <strong>census tract level</strong>.</p>
+</section>
+<section id="our-prior-knowledge-doesnt-actually-expect-risk-to-be-the-same-in-each-tract" class="level3">
+<h3 class="anchored" data-anchor-id="our-prior-knowledge-doesnt-actually-expect-risk-to-be-the-same-in-each-tract">2. Our prior knowledge doesn’t actually expect risk to be the same in each tract</h3>
+<p>Based on extraneous socioeconomic factors, our prior knowledge expects some tracts to have greater risk of SUID than others.</p>
+<p>I want to create individual priors indexed to each census tract.</p>
+</section>
+<section id="the-model-ignores-spatial-influence" class="level3">
+<h3 class="anchored" data-anchor-id="the-model-ignores-spatial-influence">3. The model ignores spatial influence</h3>
+<p>The current model considers risk as an independent process in each census tract. A more plausible model would modulate the estimate of risk in each tract to be more similar to estimates of risk in nearby tracts.</p>
+<p>I want to add such a component of spatial autocorrelation to the estimates.</p>
+</section>
+</section>
+<section id="help-wanted" class="level2">
+<h2 class="anchored" data-anchor-id="help-wanted">Help Wanted</h2>
+<p>I know that adding all these moving parts will require me to transition from using a mathematically-specified posterior solution, to using an MCMC approximation. I am hoping someone can help me write out all these components into a cohesive whole that can be fed into brms (or directly into Stan). I aim to get this work published and would at minimum add you into the acknowledgements section if not consider adding you as a co-author depending on the level of assistance given.</p>
+<p>Thank you for the consideration!</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

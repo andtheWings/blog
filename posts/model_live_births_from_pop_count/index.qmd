@@ -180,7 +180,18 @@ negbinomial_model <- brm(
     data = model_data, 
     family = negbinomial()
 )
+
+make_stancode(
+    births ~ log(pop_under_five), 
+    data = model_data, 
+    family = negbinomial()
+)
 ```
+
+```{r}
+summary(negbinomial_model)
+```
+
 
 Let's compute some metrics comparing relative performance between the two models:
 
