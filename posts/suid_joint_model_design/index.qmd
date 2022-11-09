@@ -21,8 +21,6 @@ Bayesian estimation of the generative risk process brings two primary benefits:
 - It allows me to incorporate prior knowledge to smooth out estimates toward more plausible values
 - It allows me to represent risk as a distribution of plausible values rather than just getting a point estimate
 
-
-
 ## Basic Premise
 
 I want to represent the risk in the following Beta-Binomial model:

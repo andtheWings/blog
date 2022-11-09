@@ -2,6 +2,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/chicago_neighborhood_size/index.html",
       "/posts/suid_joint_model_design/index.html",
       "/posts/gun_related_deaths_from_ccmeo/index.html",
       "/posts/model_live_births_from_pop_count/index.html",

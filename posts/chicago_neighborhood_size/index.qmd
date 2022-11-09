@@ -1,0 +1,70 @@
+---
+title: "How Big Are Chicago Neighborhoods?"
+author: "Daniel P. Hall Riggins, MD"
+date: "2022-11-09"
+categories: [geography, chicago, statistics]
+code-fold: true
+---
+
+## Premise
+
+In certain methods of [spatial cross-validation](https://geocompr.robinlovelace.net/spatial-cv.html#intro-cv), you need to set an inclusion radius and a buffer distance for the folds into which you divide your data. I am working with census tracts, and think it would make sense to use distances based on neighborhoods to set the inclusion radius and buffer distance.
+
+![Image source: A and N mortgage](The-Best-Chicago-Neighborhoods-to-Move-To.jpg)
+
+## Set-Up
+
+Load the data wrangling and mapping libraries, then import Chicago neighborhoods:
+
+```{r}
+#| warning: false
+#| error: false
+#| cache: true
+
+library(tidyverse)
+library(sf)
+library(tmap)
+
+# Source: Chicago Data Portal - Boundaries - Neighborhoods
+# URL: https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Neighborhoods/bbvz-uum9
+neighborhoods <- st_read(here::here("data", "boundaries_neighborhoods_chicago.kml"))
+```
+
+## Calculations
+
+1. Use [S2 backend](https://s2geometry.io/) of [sf library](https://r-spatial.github.io/sf/index.html) to calculate areas of each neighborhood
+2. Calculate a rough radius of each neighborhood by treating it as if it were a circle
+3. Calcuate the average rough radius
+
+```{r}
+#| cache: true
+neighborhoods |> 
+    mutate(
+        area = st_area(neighborhoods),
+        rough_radius = sqrt(area/pi)
+    ) |> 
+    summarize(avg_rough_radius = mean(rough_radius))
+```
+The average rough radius is about 1273 meters.
+
+## Visualize
+
+Visualize what it looks like to add a 1300 meter buffer zone around each neighborhood:
+
+```{r}
+#| warning: false
+#| error: false
+#| message: false
+#| cache: true
+
+buffers <- st_buffer(neighborhoods, 1300)
+```
+```{r}
+#| warning: false
+#| error: false
+#| message: false
+
+tmap_mode("view")
+tm_shape(buffers) + tm_polygons(col = "pri_neigh", alpha = 0.5, border.alpha = 0) + tm_shape(neighborhoods) + tm_polygons(alpha = 0)
+```
+
