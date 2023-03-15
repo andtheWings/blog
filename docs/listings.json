@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/chicago_cold_deaths/index.html",
+      "/posts/ww_eda/index.html",
       "/posts/chicago_neighborhood_size/index.html",
       "/posts/suid_joint_model_design/index.html",
       "/posts/gun_related_deaths_from_ccmeo/index.html",

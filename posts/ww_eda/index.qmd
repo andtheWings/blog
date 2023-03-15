@@ -1,0 +1,343 @@
+---
+title: "Exploratory Data Analysis of SARS-CoV-2 in Cook County Wastewater"
+author: "Daniel P. Hall Riggins, MD"
+date: "2022-11-12"
+categories: [chicago, epidemiology, covid]
+code-fold: true
+execute: 
+  warning: false
+  error: false
+---
+
+## Rationale
+
+I am working on a project to support Cook County Department of Public Health with wastewater surveillance of SARS-CoV-2. We want to detect surges of viral copies in wastewater and see if those surges can act as early warnings for surges in hospital cases of COVID-19. In this post, I will perform some preliminary exploratory data analysis of the data.
+
+## Dataset and Prep
+
+The data was derived from the CDC's National Wastewater Surveillance System. Please see this [git commit](https://github.com/andtheWings/sars_wastewater_in_cook_county/commit/c513908b2830a00dcb54f3927289e44578804ff6) for a specification of the data preparation pipeline I performed using the {[targets](https://docs.ropensci.org/targets/)} package. 
+
+Here is a glimpse of the data:
+
+```{r}
+
+library(tidyverse)
+library(timetk)
+library(tmap)
+
+ww_data <- arrow::read_parquet(here::here("data", "ww_cook_county.parquet")) 
+
+glimpse(ww_data)
+
+ww_data |> 
+    mutate(
+        viral_copies_per_day_per_person = M_viral_copies_per_day_per_person * 1E6
+    ) |> 
+    glimpse()
+```
+
+Laboratories report results as concentration of viral copies recovered per liter of wastewater at each sampling site (variable `pcr_target_avg_conc`). In order to enable comparison of samples across different sites, the CDC recommends standardizing by:
+
+- Flow rate of wastewater at the sampling site (variable `flow_rate` in millions of gallons per day).
+- Number of people supplying waste to the sewershed (variable `population_served`)
+- Efficiency of viral recovery during the sampling process (variable `rec_eff_percent`). This is estimated by spiking wastewater with a known quantity of a different virus and seeing what proportion is recovered.
+
+After standardizing by all these variables, the measurements units convert to million viral copies per day per person (variable `M_viral_copies_per_day_per_person`):
+
+$$
+\frac{viral \space copies}{liter \space of \space wastewater} \times 
+\frac{3.8 \space liters}{gallon} \times
+\frac{flow \space rate \space in \space million \space gallons}{day} \times
+\frac{1}{\# \space people \space in \space catchment} \times
+\frac{100}{\% \space efficiency \space of \space viral \space recovery} =
+\frac{million \space viral \space copies}{day \space and \space person}
+$$
+
+There are 7 wastewater treatment plants at which SARS-CoV-2 is sampled in Cook County:
+
+```{r}
+ww_data_locations <-
+    ww_data |>  
+    select(display_name) |> 
+    distinct() |> 
+    arrange(display_name)
+
+ww_data_locations
+```
+
+Here are the locations on the map:
+
+```{r}
+ww_data_locations <- 
+    ww_data_locations |> 
+    # CDC-provided long/lats are not accurate
+    mutate(
+        longitude = c(-87.606416, -88.037690, -88.138314, -87.936888, -87.998061, -87.717100, -87.766175, -87.766175),
+        latitude = c(41.662910, 42.019824, 41.999846, 42.021035, 41.678252, 42.020932, 41.817061, 41.817061),
+        display_name = c("Calumet", "Egan", "Hanover Park", "Kirie", "Lemont", "O'Brien", "Stickney", "")
+    ) |> 
+    sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
+    
+tmap_mode("view")
+
+ww_data_locations |> 
+    select(display_name) |> 
+    distinct() |> 
+    tm_shape() + 
+    tm_markers(clustering = FALSE) +
+    tm_text("display_name", size = 2)
+```
+
+## Plot the Time-Series for Each Treatment Plant
+
+::: {.panel-tabset}
+
+## Calumet
+
+```{r}
+library(pspline)
+library(plotly)
+
+calumet_trunc_data <- 
+    ww_data |> 
+    filter(short_name == "calumet") |> 
+    filter(date < lubridate::ymd("2022-04-11"))
+
+egan_trunc_data <- 
+    ww_data |> 
+    filter(short_name == "egan") 
+
+calumet_fitted_spline <- sm.spline(calumet_data$day_num, calumet_data$M_viral_copies_per_day_per_person)
+egan_fitted_spline <- sm.spline(egan_data$day_num, egan_data$M_viral_copies_per_day_per_person)
+
+calumet_data <-
+    calumet_data |> 
+    mutate(
+        .base = predict(calumet_fitted_spline, calumet_data$day_num, nderiv = 0)[,1],
+        .first = predict(calumet_fitted_spline, calumet_data$day_num, nderiv = 1)[,1],
+        .second = predict(calumet_fitted_spline, calumet_data$day_num, nderiv = 2)[,1]
+    ) |> 
+    rename(
+        .observed = M_viral_copies_per_day_per_person
+    )    
+
+egan_data <-
+    egan_data |> 
+    mutate(
+        .base = predict(egan_fitted_spline, egan_data$day_num, nderiv = 0)[,1],
+        .first = predict(egan_fitted_spline, egan_data$day_num, nderiv = 1)[,1],
+        .second = predict(egan_fitted_spline, egan_data$day_num, nderiv = 2)[,1]
+    ) |> 
+    rename(
+        .observed = M_viral_copies_per_day_per_person
+    )
+
+calumet_subset <-
+    calumet_data |> 
+    filter(.first > 2.5)
+
+egan_subset <-
+    egan_data |> 
+    filter(.first > 2.5)
+
+calumet_data |> 
+    ggplot(aes(x = date, y = .second)) +
+    geom_line(color = "darkred") +
+    labs(
+        x = NULL,
+        y = "Acceleration of Change"
+    ) +
+    theme_bw()
+```
+
+
+```{r}
+egan_data |> 
+    plot_time_series(
+        date, .observed, 
+        .smooth = FALSE, 
+        .title = "SARS-CoV-2 Surveillance at Egan Water Reclamation Plant", 
+        .y_lab = "Million Viral Copies per Day per Person"
+    ) |> 
+    add_trace(
+        x = ~date, 
+        y = ~.base,
+        color = I("red"),
+        mode = "lines"
+    )
+    
+```
+
+```{r}
+egan_data |> 
+    plot_anomaly_diagnostics(
+        date, .observed,
+        .alpha = 0.2,
+        .title = "SARS-CoV-2 Surveillance Anomalies at Egan Water Reclamation Plant (alpha = 0.20)", 
+        .y_lab = "Million Viral Copies per Day per Person"
+    ) 
+```
+
+
+```{r}
+threshold_anomalies_plot <-
+    
+egan_threshold_anomalies_plot <-
+    egan_data |> 
+    plot_time_series(
+        date, .first,
+        .title = "SARS-CoV-2 Surveillance Slope at Egan Water Reclamation Plant",
+        .y_lab = "Change in Million Copies per Human per Day",
+        .smooth = FALSE,
+        .interactive = FALSE
+    ) +
+    geom_point(
+        aes(x = date, y = .first), 
+        data = egan_subset,
+        color = "red"
+    ) +
+    geom_hline(yintercept = 2.5, linetype = "dashed", color = "red") 
+
+ggplotly(egan_threshold_anomalies_plot)
+```
+
+
+```{r}
+egan_data |> 
+    plot_anomaly_diagnostics(
+        date, .first,
+        .title = "SARS-CoV-2 Surveillance Slope Anomalies (alpha = 0.05)", 
+        .y_lab = "Change in Million Copies per Human per Day"
+    )
+```
+
+
+```{r}
+hline <- function(y = 0, color = "black") {
+  list(
+    type = "line", 
+    x0 = "2021-11-01", 
+    x1 = "2022-07-19", 
+    xref = "paper",
+    y0 = y, 
+    y1 = y, 
+    line = list(color = color)
+  )
+}
+
+
+calumet_data |> 
+    plot_time_series(
+        date, .first,
+        .line_color = "maroon",
+        .smooth = FALSE
+    ) |> 
+    add_segments(
+        x = "2021-11-01",
+        xend = "2022-07-19",
+        y = 2.5,
+        yend = 2.5,
+        color = I("black"),
+        
+        
+    )
+```
+
+
+```{r}
+calumet_data |> 
+    plot_anomaly_diagnostics(
+        date, .second
+    )
+```
+
+
+```{r}
+ww_data |> 
+    filter(short_name == "calumet") |> 
+    plot_acf_diagnostics(date, M_viral_copies_per_day_per_person)
+```
+
+```{r}
+ww_nested_by_plant <-
+    ww_data |> 
+    select(short_name, display_name, date, day_num, M_viral_copies_per_day_per_person) |> 
+    group_by(short_name, display_name) |>
+    nest()
+
+
+fit_spline <- function(data_df) {
+    
+    sm.spline(data_df$day_num, data_df$M_viral_copies_per_day_per_person)
+    
+}
+
+get_spline_predictions <- function(data_df, spline_model_obj) {
+    
+    df1 <-
+        tibble(
+            .prediction = predict(spline_model_obj, data_df$day_num, nderiv = 0)[,1],
+            .slope = predict(spline_model_obj, data_df$day_num, nderiv = 1)[,1],
+            .acceleration = predict(spline_model_obj, data_df$day_num, nderiv = 2)[,1]
+        )
+    
+    return(df1)
+}
+
+
+with_models <-
+    ww_nested_by_plant |> 
+    mutate(
+        spline_model = map(data, fit_spline),
+        spline_preds = map2(data, spline_model, get_spline_predictions)
+    )
+
+
+unnest(with_models, cols = c(data, spline_preds)) |> 
+    ggplot(aes(x = date, color = short_name)) +
+    geom_line(aes(y = .slope))
+    # geom_point(aes(y = M_viral_copies_per_day_per_person), alpha = 0.25) +
+    # geom_line(aes(y = .prediction))
+    
+unnest(with_models, cols = c(data, spline_preds)) |> 
+    plot_time_series()
+```
+
+
+```{r}
+calumet_data <- ww_nested_by_plant$data[[1]] 
+
+pspline::smooth.Pspline(calumet_data$day_num, calumet_data$M_viral_copies_per_day_per_person)
+
+
+calumet_data
+
+library(pspline)
+
+plot(calumet_data$day_num, calumet_data$M_viral_copies_per_day_per_person)
+
+spline_fit <- sm.spline(calumet_data$day_num, calumet_data$M_viral_copies_per_day_per_person)
+
+lines(spline_fit, col = "red")
+
+calumet_data$spline <- predict(spline_fit, calumet_data$day_num, nderiv = 0)
+calumet_data$slope <- predict(spline_fit, calumet_data$day_num, nderiv = 1)
+calumet_data$accel <- predict(spline_fit, calumet_data$day_num, nderiv = 2)
+
+calumet_data |> 
+    ggplot(aes(day_num)) +
+    geom_point(aes(y = M_viral_copies_per_day_per_person)) +
+    geom_line(aes(y = spline), color = "red", linetype = "dashed")
+```
+
+```{r}
+calumet_data |> 
+    ggplot(aes(day_num)) +
+    geom_line(aes(y = slope), color = "red", linetype = "dashed")
+```
+
+```{r}
+calumet_data |> 
+    ggplot(aes(day_num)) +
+    geom_line(aes(y = accel), color = "red", linetype = "dashed")
+```
